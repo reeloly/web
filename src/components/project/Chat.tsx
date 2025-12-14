@@ -8,7 +8,7 @@ import { ChatMessageComponent } from "./ChatMessage";
 interface ChatProps {
   projectId: string;
   messages: ChatMessage[];
-  onSendMessage: (content: string) => void;
+  onSendMessage: (content: string) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -70,8 +70,9 @@ export function Chat({
   return (
     <div className="flex flex-col h-full bg-zinc-950/50 rounded-lg border border-zinc-800 overflow-hidden">
       {/* Messages area */}
-      <ScrollArea ref={scrollAreaRef} className="flex-1 px-4 py-4">
-        <div className="space-y-4 max-w-4xl mx-auto">
+      <div className="flex-1 min-h-0">
+        <ScrollArea ref={scrollAreaRef} className="h-full px-4 py-4">
+          <div className="space-y-4 max-w-4xl mx-auto">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center">
               <div className="w-16 h-16 rounded-full bg-zinc-800/50 flex items-center justify-center mb-4">
@@ -114,7 +115,8 @@ export function Chat({
             </div>
           )}
         </div>
-      </ScrollArea>
+        </ScrollArea>
+      </div>
 
       {/* Input area */}
       <ChatInput

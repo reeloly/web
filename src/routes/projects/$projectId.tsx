@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Chat } from "@/components/project/Chat";
 import { ProjectHeader } from "@/components/project/ProjectHeader";
 import { ProjectResizable } from "@/components/project/ProjectResizable";
 import { ProjectTabs } from "@/components/project/ProjectTabs";
+import { streamAIResponse } from "@/data/chat.server";
 import { getMockChatMessages, getMockProjects } from "@/lib/mockData";
 import { type ChatMessage, MessageRole } from "@/types/chat";
 
@@ -35,34 +36,67 @@ function ProjectPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Handle sending a message
-  const handleSendMessage = (content: string) => {
-    // Add user message
-    const userMessage: ChatMessage = {
-      id: createMessageId(),
-      projectId,
-      role: MessageRole.USER,
-      content,
-      createdAt: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setIsLoading(true);
-
-    // Simulate AI response after a delay
-    setTimeout(() => {
-      const assistantMessage: ChatMessage = {
+  const handleSendMessage = useCallback(
+    async (content: string) => {
+      // Add user message
+      const userMessage: ChatMessage = {
         id: createMessageId(),
         projectId,
+        role: MessageRole.USER,
+        content,
+        createdAt: new Date(),
+      };
+
+      setMessages((prev) => [...prev, userMessage]);
+      setIsLoading(true);
+
+      // Create a placeholder assistant message that will be streamed
+      const assistantMessageId = createMessageId();
+      const assistantMessage: ChatMessage = {
+        id: assistantMessageId,
+        projectId,
         role: MessageRole.ASSISTANT,
-        content:
-          "I understand your request. I'll work on updating the video based on your feedback. This is a simulated response - in production, this would connect to your AI backend.",
+        content: "",
         createdAt: new Date(),
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-      setIsLoading(false);
-    }, 1500);
-  };
+
+      try {
+        const stream = await streamAIResponse({
+          data: { message: content, projectId },
+        });
+
+        for await (const msg of stream) {
+          const chunk = msg.content;
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantMessageId
+                ? { ...m, content: m.content + chunk }
+                : m
+            )
+          );
+        }
+      } catch (error) {
+        console.error("Error streaming AI response:", error);
+        // Update the message with an error
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantMessageId
+              ? {
+                  ...msg,
+                  content:
+                    "Sorry, there was an error processing your request. Please try again.",
+                }
+              : msg
+          )
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [projectId]
+  );
 
   // Chat component
   const chatContent = (

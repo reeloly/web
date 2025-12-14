@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
 interface ChatInputProps {
-  onSendMessage: (message: string) => void;
+  onSendMessage: (message: string) => Promise<void>;
   placeholder?: string;
   disabled?: boolean;
 }
@@ -15,6 +15,7 @@ export function ChatInput({
   disabled = false,
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
+  const [isSending, setIsSending] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-resize textarea based on content
@@ -31,15 +32,23 @@ export function ChatInput({
     textarea.style.height = `${textarea.scrollHeight}px`;
   }, [message]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const trimmedMessage = message.trim();
-    if (trimmedMessage && !disabled) {
-      onSendMessage(trimmedMessage);
+    if (!trimmedMessage || disabled || isSending) return;
+
+    setIsSending(true);
+    try {
+      await onSendMessage(trimmedMessage);
       setMessage("");
       // Reset textarea height
       if (textareaRef.current) {
         textareaRef.current.style.height = "auto";
       }
+    } catch (error) {
+      // React doesn't await event handlers; ensure errors don't become unhandled promise rejections.
+      console.error("Error sending message:", error);
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -47,7 +56,7 @@ export function ChatInput({
     // Send on Enter (without Shift)
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      void handleSend();
     }
   };
 
@@ -65,8 +74,10 @@ export function ChatInput({
           rows={1}
         />
         <Button
-          onClick={handleSend}
-          disabled={!message.trim() || disabled}
+          onClick={() => {
+            void handleSend();
+          }}
+          disabled={!message.trim() || disabled || isSending}
           size="icon"
           className="h-[44px] w-[44px] flex-shrink-0 bg-coral-hover disabled:bg-zinc-800 disabled:text-zinc-600"
         >
