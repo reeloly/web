@@ -1,4 +1,6 @@
 import type { Project } from "@/types/project";
+import type { ChatMessage } from "@/types/chat";
+import { MessageRole } from "@/types/chat";
 
 // Mock function to generate project data
 export function getMockProjects(): Project[] {
@@ -79,4 +81,88 @@ export function createMockProject(description: string): Project {
 		createdAt: new Date(),
 		updatedAt: new Date(),
 	};
+}
+
+// Mock function to get chat messages for a project
+export function getMockChatMessages(projectId: string): ChatMessage[] {
+	// Return different mock conversations based on projectId
+	const conversations: Record<string, ChatMessage[]> = {
+		"1": [
+			{
+				id: "msg-1-1",
+				projectId: "1",
+				role: MessageRole.SYSTEM,
+				content: "Project created. Let's start creating your video!",
+				createdAt: new Date("2024-03-15T10:00:00"),
+			},
+			{
+				id: "msg-1-2",
+				projectId: "1",
+				role: MessageRole.USER,
+				content:
+					"I want to create a promotional video for our new summer product line. It should be upbeat and colorful.",
+				createdAt: new Date("2024-03-15T10:01:00"),
+			},
+			{
+				id: "msg-1-3",
+				projectId: "1",
+				role: MessageRole.ASSISTANT,
+				content:
+					"Great! I'll create a vibrant summer promotional video for you. I'm thinking bright colors, energetic transitions, and a upbeat soundtrack. Would you like me to include product shots, lifestyle scenes, or both?",
+				createdAt: new Date("2024-03-15T10:01:30"),
+			},
+			{
+				id: "msg-1-4",
+				projectId: "1",
+				role: MessageRole.USER,
+				content: "Both would be perfect! Can you add some beach scenes too?",
+				createdAt: new Date("2024-03-15T10:02:00"),
+			},
+			{
+				id: "msg-1-5",
+				projectId: "1",
+				role: MessageRole.ASSISTANT,
+				content:
+					"Absolutely! I'll incorporate beach scenes along with product shots and lifestyle footage. The video will have a summer vacation vibe with your products featured naturally. I'll start rendering the preview now.",
+				createdAt: new Date("2024-03-15T10:02:15"),
+			},
+		],
+		"2": [
+			{
+				id: "msg-2-1",
+				projectId: "2",
+				role: MessageRole.SYSTEM,
+				content: "Project created. Ready to tell your brand story!",
+				createdAt: new Date("2024-03-10T14:00:00"),
+			},
+			{
+				id: "msg-2-2",
+				projectId: "2",
+				role: MessageRole.USER,
+				content:
+					"I need a video that tells our company's story - from our humble beginnings to where we are today.",
+				createdAt: new Date("2024-03-10T14:01:00"),
+			},
+			{
+				id: "msg-2-3",
+				projectId: "2",
+				role: MessageRole.ASSISTANT,
+				content:
+					"I'll create an inspiring brand story video for you. I'll use a documentary-style approach with vintage footage transitions, inspiring music, and compelling narration. Should we include founder interviews or testimonials?",
+				createdAt: new Date("2024-03-10T14:01:45"),
+			},
+		],
+		"3": [
+			{
+				id: "msg-3-1",
+				projectId: "3",
+				role: MessageRole.SYSTEM,
+				content: "Project created. Let's showcase your customer testimonials!",
+				createdAt: new Date("2024-03-05T09:00:00"),
+			},
+		],
+	};
+
+	// Return the conversation for the project, or an empty array for new projects
+	return conversations[projectId] || [];
 }
