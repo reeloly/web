@@ -1,22 +1,52 @@
 import { Send } from "lucide-react";
-import { type KeyboardEvent, useLayoutEffect, useRef, useState } from "react";
+import {
+  type KeyboardEvent,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
 interface ChatInputProps {
   onSendMessage: (message: string) => Promise<void>;
   placeholder?: string;
+  /**
+   * Disables sending (button + Enter-to-send), but still allows typing.
+   * This is important because disabling a focused textarea will force it to blur.
+   */
   disabled?: boolean;
+  /** Disables typing (textarea). Use sparingly. */
+  inputDisabled?: boolean;
 }
 
 export function ChatInput({
   onSendMessage,
   placeholder = "Type your message...",
   disabled = false,
+  inputDisabled = false,
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [failedMessage, setFailedMessage] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const prevInputDisabledRef = useRef(inputDisabled);
+  const latestMessageRef = useRef(message);
+
+  useEffect(() => {
+    latestMessageRef.current = message;
+  }, [message]);
+
+  // If the textarea was disabled (which blurs it) and becomes enabled again, restore focus.
+  useEffect(() => {
+    const wasDisabled = prevInputDisabledRef.current;
+    if (wasDisabled && !inputDisabled) {
+      textareaRef.current?.focus();
+    }
+    prevInputDisabledRef.current = inputDisabled;
+  }, [inputDisabled]);
 
   // Auto-resize textarea based on content
   useLayoutEffect(() => {
@@ -37,16 +67,35 @@ export function ChatInput({
     if (!trimmedMessage || disabled || isSending) return;
 
     setIsSending(true);
+    setSendError(null);
+    setFailedMessage(null);
+
+    const outgoingMessage = trimmedMessage;
+
+    // Clear + refocus immediately so the user can start typing the next message
+    // while the async send (and any streaming response) is happening.
+    setMessage("");
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.focus();
+    }
     try {
-      await onSendMessage(trimmedMessage);
-      setMessage("");
-      // Reset textarea height
-      if (textareaRef.current) {
-        textareaRef.current.style.height = "auto";
-      }
+      await onSendMessage(outgoingMessage);
     } catch (error) {
       // React doesn't await event handlers; ensure errors don't become unhandled promise rejections.
       console.error("Error sending message:", error);
+      setSendError("Failed to send message. Please try again.");
+
+      // If the user hasn't started typing a new draft yet, restore the failed message
+      // so they can retry without losing it. Otherwise, keep it available via "Restore".
+      const currentDraft = latestMessageRef.current;
+      if (currentDraft.trim().length === 0) {
+        setMessage(outgoingMessage);
+        // Keep focus for quick retry.
+        textareaRef.current?.focus();
+      } else {
+        setFailedMessage(outgoingMessage);
+      }
     } finally {
       setIsSending(false);
     }
@@ -69,7 +118,7 @@ export function ChatInput({
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          disabled={disabled}
+          disabled={inputDisabled}
           className="min-h-[44px] max-h-[200px] resize-none bg-zinc-900 border-zinc-700 focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600 text-zinc-100 placeholder:text-zinc-500"
           rows={1}
         />
@@ -87,6 +136,27 @@ export function ChatInput({
       <p className="text-xs text-zinc-500 text-center mt-2">
         Press Enter to send, Shift+Enter for new line
       </p>
+      {sendError && (
+        <div className="mt-2 max-w-4xl mx-auto flex items-center justify-between gap-2 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+          <span>{sendError}</span>
+          {failedMessage && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-red-100 hover:text-red-50 hover:bg-red-500/10"
+              onClick={() => {
+                setMessage(failedMessage);
+                setFailedMessage(null);
+                setSendError(null);
+                textareaRef.current?.focus();
+              }}
+            >
+              Restore
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

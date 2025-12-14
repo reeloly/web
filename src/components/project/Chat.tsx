@@ -73,48 +73,48 @@ export function Chat({
       <div className="flex-1 min-h-0">
         <ScrollArea ref={scrollAreaRef} className="h-full px-4 py-4">
           <div className="space-y-4 max-w-4xl mx-auto">
-          {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center">
-              <div className="w-16 h-16 rounded-full bg-zinc-800/50 flex items-center justify-center mb-4">
-                <svg
-                  className="w-8 h-8 text-zinc-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <title>Chat bubble icon</title>
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                  />
-                </svg>
+            {messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center">
+                <div className="w-16 h-16 rounded-full bg-zinc-800/50 flex items-center justify-center mb-4">
+                  <svg
+                    className="w-8 h-8 text-zinc-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <title>Chat bubble icon</title>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-zinc-300 mb-2">
+                  Start a conversation
+                </h3>
+                <p className="text-sm text-zinc-500 max-w-sm">
+                  Describe the changes you want to make to your video, or ask
+                  questions about your project.
+                </p>
               </div>
-              <h3 className="text-lg font-medium text-zinc-300 mb-2">
-                Start a conversation
-              </h3>
-              <p className="text-sm text-zinc-500 max-w-sm">
-                Describe the changes you want to make to your video, or ask
-                questions about your project.
-              </p>
-            </div>
-          ) : (
-            messages.map((message) => (
-              <ChatMessageComponent key={message.id} message={message} />
-            ))
-          )}
+            ) : (
+              messages.map((message) => (
+                <ChatMessageComponent key={message.id} message={message} />
+              ))
+            )}
 
-          {/* Loading indicator */}
-          {isLoading && (
-            <div className="mb-6 animate-in fade-in-0 duration-200">
-              <div className="flex items-center gap-2 bg-zinc-800/20 text-zinc-400 rounded-lg px-4 py-2.5 border border-zinc-700/30 max-w-[85%]">
-                <Spinner className="w-4 h-4" />
-                <span className="text-sm">Thinking...</span>
+            {/* Loading indicator */}
+            {isLoading && (
+              <div className="mb-6 animate-in fade-in-0 duration-200">
+                <div className="flex items-center gap-2 bg-zinc-800/20 text-zinc-400 rounded-lg px-4 py-2.5 border border-zinc-700/30 max-w-[85%]">
+                  <Spinner className="w-4 h-4" />
+                  <span className="text-sm">Thinking...</span>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
         </ScrollArea>
       </div>
 
@@ -122,6 +122,7 @@ export function Chat({
       <ChatInput
         onSendMessage={onSendMessage}
         placeholder="Describe what you want to change..."
+        // Keep typing enabled while the assistant is responding; only disable sending.
         disabled={isLoading}
       />
     </div>
