@@ -2,7 +2,6 @@ import {
   SignedIn,
   SignedOut,
   SignInButton,
-  UserButton,
   useUser,
 } from "@clerk/tanstack-react-start";
 import { Link, useLocation } from "@tanstack/react-router";
@@ -30,37 +29,7 @@ function UserFooterSignedIn({
 }: {
   user: { name: string; email: string; avatar: string };
 }) {
-  return (
-    // <UserButton
-    //   appearance={{
-    //     elements: {
-    //       rootBox: "w-full",
-    //       userButtonBox: "flex-row-reverse w-full",
-    //       userButtonTrigger:
-    //         "flex items-center gap-2 px-2 py-2 w-full rounded-md hover:bg-sidebar-accent/50 transition-colors group focus:outline-none focus-visible:ring-2 focus-visible:ring-coral",
-    //       avatarBox:
-    //         "size-8 ring-2 ring-sidebar-border group-hover:ring-coral transition-all duration-200",
-    //       userButtonOuterIdentifier: "flex-1 text-left overflow-hidden pl-2",
-    //       userButtonInnerIdentifier:
-    //         "text-sm font-medium text-sidebar-foreground truncate",
-    //       userButtonPopoverCard: "bg-zinc-900 border border-zinc-800 shadow-xl",
-    //       userButtonPopoverActionButton:
-    //         "text-zinc-300 hover:text-coral hover:bg-zinc-800 transition-colors",
-    //       userButtonPopoverActionButtonText: "font-montserrat",
-    //       userButtonPopoverFooter: "hidden",
-    //       userButtonPopoverActionButtonIcon: "text-zinc-400",
-    //     },
-    //     variables: {
-    //       colorPrimary: "oklch(0.65 0.18 35)",
-    //       colorBackground: "oklch(0.08 0.005 0)",
-    //       colorText: "oklch(0.85 0 0)",
-    //       borderRadius: "0.625rem",
-    //     },
-    //   }}
-    //   showName
-    // />
-    <NavUser user={user} />
-  );
+  return <NavUser user={user} />;
 }
 
 function UserFooterSignedOut() {
