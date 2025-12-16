@@ -4,7 +4,7 @@ import {
   SignInButton,
   UserButton,
 } from "@clerk/tanstack-react-start";
-import { useNavigate } from "@tanstack/react-router";
+import { ClientOnly, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -47,27 +47,29 @@ export function ProjectHeader({
       </div>
 
       <div className="flex-shrink-0">
-        <SignedIn>
-          <UserButton
-            appearance={{
-              elements: {
-                avatarBox:
-                  "size-10 ring-2 ring-zinc-800 hover:ring-coral transition-all duration-200",
-                userButtonPopoverCard: "bg-zinc-900 border border-zinc-800",
-                userButtonPopoverActionButton:
-                  "text-zinc-300 hover:text-coral hover:bg-zinc-800 transition-colors",
-                userButtonPopoverActionButtonText: "font-montserrat",
-                userButtonPopoverFooter: "hidden",
-              },
-              variables: {
-                colorPrimary: "oklch(0.65 0.18 35)",
-                colorBackground: "oklch(0.08 0.005 0)",
-                colorText: "oklch(0.85 0 0)",
-                borderRadius: "0.625rem",
-              },
-            }}
-          />
-        </SignedIn>
+        <ClientOnly>
+          <SignedIn treatPendingAsSignedOut>
+            <UserButton
+              appearance={{
+                elements: {
+                  avatarBox:
+                    "size-10 ring-2 ring-zinc-800 hover:ring-coral transition-all duration-200",
+                  userButtonPopoverCard: "bg-zinc-900 border border-zinc-800",
+                  userButtonPopoverActionButton:
+                    "text-zinc-300 hover:text-coral hover:bg-zinc-800 transition-colors",
+                  userButtonPopoverActionButtonText: "font-montserrat",
+                  userButtonPopoverFooter: "hidden",
+                },
+                variables: {
+                  colorPrimary: "oklch(0.65 0.18 35)",
+                  colorBackground: "oklch(0.08 0.005 0)",
+                  colorText: "oklch(0.85 0 0)",
+                  borderRadius: "0.625rem",
+                },
+              }}
+            />
+          </SignedIn>
+        </ClientOnly>
         <SignedOut>
           <SignInButton mode="modal">
             <Button

@@ -167,6 +167,9 @@ importers:
       srvx:
         specifier: 0.8.15
         version: 0.8.15
+      sse.js:
+        specifier: ^2.7.2
+        version: 2.7.2
       tailwind-merge:
         specifier: ^3.4.0
         version: 3.4.0
@@ -3179,6 +3182,9 @@ packages:
     resolution: {integrity: sha512-poPs1GuctQLpiJ/1Pb8e+5b5lju9hQU7wxJ6NkYVUw7ZZExeRoYwyiaOekal+rDZc99MO/J2y9+SGFpHBKRSpQ==}
     engines: {node: '>=20.16.0'}
     hasBin: true
+
+  sse.js@2.7.2:
+    resolution: {integrity: sha512-EDu2kt+A+HIagwUOCrDbKfsUrKxNWdoeKQVKfpruRSO34yL2xwS142Ad3AYhjCY81oWySeCsPs0wSu+c2QG14g==}
 
   stackback@0.0.2:
     resolution: {integrity: sha512-1XMJE5fQo1jGH6Y/7ebnwPOBEkIEnT4QF32d5R1+VXdXveM0IBMJt8zfaxX1P3QhVwrYe+576+jkANtSS2mBbw==}
@@ -6483,6 +6489,8 @@ snapshots:
   srvx@0.8.15:
     dependencies:
       cookie-es: 2.0.0
+
+  sse.js@2.7.2: {}
 
   stackback@0.0.2: {}
 

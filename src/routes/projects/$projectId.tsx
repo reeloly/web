@@ -1,14 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { type ReadyStateEvent, SSE, type SSEvent } from "sse.js";
 import { Chat } from "@/components/project/Chat";
 import { ProjectHeader } from "@/components/project/ProjectHeader";
 import { ProjectResizable } from "@/components/project/ProjectResizable";
 import { ProjectTabs } from "@/components/project/ProjectTabs";
-import { streamAIResponse } from "@/data/chat.server";
+import {
+  agentMessageDeltaEventSchema,
+  agentMessageEndEventSchema,
+} from "@/data/messages.types";
+import { getSSEUrl } from "@/data/sseUrl.server";
 import { getMockChatMessages, getMockProjects } from "@/lib/mockData";
 import { type ChatMessage, MessageRole } from "@/types/chat";
 
 export const Route = createFileRoute("/projects/$projectId")({
+  loader: async () => {
+    const sseUrl = await getSSEUrl();
+    return { sseUrl };
+  },
   component: ProjectPage,
 });
 
@@ -25,15 +34,29 @@ function createMessageId() {
 
 function ProjectPage() {
   const { projectId } = Route.useParams();
+  const { sseUrl } = Route.useLoaderData();
 
   // Get project data from mock data
   const project = getMockProjects().find((p) => p.id === projectId);
 
-  // Chat state management
-  const [messages, setMessages] = useState<ChatMessage[]>(() =>
-    getMockChatMessages(projectId)
-  );
+  // Chat state management - initialize with empty array to avoid hydration mismatch
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const sourceRef = useRef<SSE | null>(null);
+  const hasEndedRef = useRef(false);
+
+  useEffect(() => {
+    return () => {
+      sourceRef.current?.close();
+      sourceRef.current = null;
+    };
+  }, []);
+
+  // Load mock messages on client-side only to prevent hydration mismatch
+  useEffect(() => {
+    setMessages(getMockChatMessages(projectId));
+  }, [projectId]);
 
   // Handle sending a message
   const handleSendMessage = useCallback(
@@ -50,7 +73,7 @@ function ProjectPage() {
       setMessages((prev) => [...prev, userMessage]);
       setIsLoading(true);
 
-      // Create a placeholder assistant message that will be streamed
+      // Create a placeholder assistant message
       const assistantMessageId = createMessageId();
       const assistantMessage: ChatMessage = {
         id: assistantMessageId,
@@ -62,13 +85,30 @@ function ProjectPage() {
 
       setMessages((prev) => [...prev, assistantMessage]);
 
-      try {
-        const stream = await streamAIResponse({
-          data: { message: content, projectId },
-        });
+      // Initialize SSE connection
+      const source = new SSE(sseUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        payload: JSON.stringify({
+          message: content,
+          projectId: projectId,
+        }),
+        withCredentials: true,
+        start: false,
+      });
+      sourceRef.current?.close();
+      sourceRef.current = source;
 
-        for await (const msg of stream) {
-          const chunk = msg.content;
+      hasEndedRef.current = false;
+
+      // Handle delta events (streaming chunks)
+      source.addEventListener("agent.message.delta", (event: SSEvent) => {
+        const parsed = agentMessageDeltaEventSchema.safeParse(
+          JSON.parse(event.data)
+        );
+
+        if (parsed.success) {
+          const chunk = parsed.data.delta;
           setMessages((prev) =>
             prev.map((m) =>
               m.id === assistantMessageId
@@ -76,10 +116,31 @@ function ProjectPage() {
                 : m
             )
           );
+        } else {
+          console.error("Invalid agent.message.delta event:", parsed.error);
         }
-      } catch (error) {
-        console.error("Error streaming AI response:", error);
-        // Update the message with an error
+      });
+
+      // Handle end event
+      source.addEventListener("agent.message.end", (event: SSEvent) => {
+        const parsed = agentMessageEndEventSchema.safeParse(
+          JSON.parse(event.data)
+        );
+
+        if (parsed.success) {
+          hasEndedRef.current = true;
+          source.close();
+          setIsLoading(false);
+        } else {
+          console.error("Invalid agent.message.end event:", parsed.error);
+        }
+      });
+
+      // Handle errors
+      source.addEventListener("error", (event: SSEvent) => {
+        console.error("SSE error:", event);
+        source.close();
+
         setMessages((prev) =>
           prev.map((msg) =>
             msg.id === assistantMessageId
@@ -91,11 +152,22 @@ function ProjectPage() {
               : msg
           )
         );
-      } finally {
+
         setIsLoading(false);
-      }
+      });
+
+      // Handle unexpected connection closure
+      source.addEventListener("readystatechange", (event: ReadyStateEvent) => {
+        if (event.readyState === SSE.CLOSED && !hasEndedRef.current) {
+          console.warn("SSE connection closed unexpectedly");
+          setIsLoading(false);
+        }
+      });
+
+      // Start the SSE stream
+      source.stream();
     },
-    [projectId]
+    [projectId, sseUrl]
   );
 
   // Chat component
