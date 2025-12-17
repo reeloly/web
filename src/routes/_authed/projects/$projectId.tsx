@@ -1,3 +1,4 @@
+import { useAuth } from "@clerk/tanstack-react-start";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { type ReadyStateEvent, SSE, type SSEvent } from "sse.js";
@@ -35,6 +36,7 @@ function createMessageId() {
 function ProjectPage() {
   const { projectId } = Route.useParams();
   const { sseUrl } = Route.useLoaderData();
+  const { getToken } = useAuth();
 
   // Get project data from mock data
   const project = getMockProjects().find((p) => p.id === projectId);
@@ -85,11 +87,15 @@ function ProjectPage() {
 
       setMessages((prev) => [...prev, assistantMessage]);
 
-      // Initialize SSE connection
+      // Get authentication token
+      const token = await getToken();
+
+      // Create authenticated SSE connection
       const source = new SSE(sseUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         payload: JSON.stringify({
           message: content,
@@ -169,7 +175,7 @@ function ProjectPage() {
       // Start the SSE stream
       source.stream();
     },
-    [projectId, sseUrl]
+    [projectId, sseUrl, getToken]
   );
 
   // Chat component
