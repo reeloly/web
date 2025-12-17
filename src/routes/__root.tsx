@@ -1,4 +1,5 @@
 import { ClerkProvider } from "@clerk/tanstack-react-start";
+import { auth } from "@clerk/tanstack-react-start/server";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import {
   createRootRoute,
@@ -7,7 +8,7 @@ import {
   useMatches,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-
+import { createServerFn } from "@tanstack/react-start";
 import { AppSidebar } from "@/components/AppSidebar";
 import {
   SidebarInset,
@@ -16,7 +17,22 @@ import {
 } from "@/components/ui/sidebar";
 import appCss from "@/styles/globals.css?url";
 
+const fetchClerkAuth = createServerFn({ method: "GET" }).handler(async () => {
+  const { userId } = await auth();
+
+  return {
+    userId,
+  };
+});
+
 export const Route = createRootRoute({
+  beforeLoad: async () => {
+    const { userId } = await fetchClerkAuth();
+
+    return {
+      userId,
+    };
+  },
   head: () => ({
     meta: [
       {
@@ -59,7 +75,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 
   // Hide sidebar on individual project pages
   const isProjectPage = matches.some(
-    (match) => match.routeId === "/projects/$projectId"
+    (match) => match.routeId === "/_authed/projects/$projectId"
   );
 
   return (

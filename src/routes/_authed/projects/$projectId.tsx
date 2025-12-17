@@ -13,7 +13,7 @@ import { getSSEUrl } from "@/data/sseUrl.server";
 import { getMockChatMessages, getMockProjects } from "@/lib/mockData";
 import { type ChatMessage, MessageRole } from "@/types/chat";
 
-export const Route = createFileRoute("/projects/$projectId")({
+export const Route = createFileRoute("/_authed/projects/$projectId")({
   loader: async () => {
     const sseUrl = await getSSEUrl();
     return { sseUrl };
@@ -88,7 +88,9 @@ function ProjectPage() {
       // Initialize SSE connection
       const source = new SSE(sseUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         payload: JSON.stringify({
           message: content,
           projectId: projectId,
