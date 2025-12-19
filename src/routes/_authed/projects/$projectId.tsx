@@ -6,6 +6,7 @@ import { Chat } from "@/components/project/Chat";
 import { ProjectHeader } from "@/components/project/ProjectHeader";
 import { ProjectResizable } from "@/components/project/ProjectResizable";
 import { ProjectTabs } from "@/components/project/ProjectTabs";
+import { Video } from "@/components/project/Video";
 import {
   agentMessageDeltaEventSchema,
   agentMessageEndEventSchema,
@@ -15,8 +16,8 @@ import { getMockChatMessages, getMockProjects } from "@/lib/mockData";
 import { type ChatMessage, MessageRole } from "@/types/chat";
 
 export const Route = createFileRoute("/_authed/projects/$projectId")({
-  loader: async () => {
-    const sseUrl = await getSSEUrl();
+  loader: async ({ params }) => {
+    const sseUrl = await getSSEUrl({ data: { projectId: params.projectId } });
     return { sseUrl };
   },
   component: ProjectPage,
@@ -188,14 +189,8 @@ function ProjectPage() {
     />
   );
 
-  // Placeholder content for video preview (will be replaced in Task 10)
-  const videoContent = (
-    <div className="bg-zinc-900 rounded-lg p-4 h-full overflow-auto">
-      <p className="text-zinc-400 text-sm">
-        Video Preview Panel (Coming in Task 10)
-      </p>
-    </div>
-  );
+  // Video component
+  const videoContent = <Video projectId={projectId} />;
 
   return (
     <div className="h-screen cinematic-bg flex flex-col overflow-hidden">

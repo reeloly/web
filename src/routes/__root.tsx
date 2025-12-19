@@ -1,6 +1,7 @@
 import { ClerkProvider } from "@clerk/tanstack-react-start";
 import { auth } from "@clerk/tanstack-react-start/server";
 import { TanStackDevtools } from "@tanstack/react-devtools";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   createRootRoute,
   HeadContent,
@@ -9,6 +10,7 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
+import { useState } from "react";
 import { AppSidebar } from "@/components/AppSidebar";
 import {
   SidebarInset,
@@ -72,6 +74,7 @@ export const Route = createRootRoute({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   const matches = useMatches();
+  const [queryClient] = useState(() => new QueryClient());
 
   // Hide sidebar on individual project pages
   const isProjectPage = matches.some(
@@ -80,43 +83,45 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 
   return (
     <ClerkProvider>
-      <html lang="en" className="dark">
-        <head>
-          <HeadContent />
-        </head>
-        <body>
-          <SidebarProvider defaultOpen={true}>
-            {!isProjectPage && <AppSidebar />}
+      <QueryClientProvider client={queryClient}>
+        <html lang="en" className="dark">
+          <head>
+            <HeadContent />
+          </head>
+          <body>
+            <SidebarProvider defaultOpen={true}>
+              {!isProjectPage && <AppSidebar />}
 
-            <SidebarInset>
-              {!isProjectPage && (
-                <header className="sticky top-0 flex h-14 items-center gap-3 px-4 bg-zinc-950 border-b border-zinc-800 z-10">
-                  <SidebarTrigger />
-                  <img
-                    src="/reeloly-wordmark.svg"
-                    alt="Reeloly"
-                    className="h-6 w-auto text-coral"
-                  />
-                </header>
-              )}
-              {children}
-            </SidebarInset>
-          </SidebarProvider>
+              <SidebarInset>
+                {!isProjectPage && (
+                  <header className="sticky top-0 flex h-14 items-center gap-3 px-4 bg-zinc-950 border-b border-zinc-800 z-10">
+                    <SidebarTrigger />
+                    <img
+                      src="/reeloly-wordmark.svg"
+                      alt="Reeloly"
+                      className="h-6 w-auto text-coral"
+                    />
+                  </header>
+                )}
+                {children}
+              </SidebarInset>
+            </SidebarProvider>
 
-          <TanStackDevtools
-            config={{
-              position: "bottom-right",
-            }}
-            plugins={[
-              {
-                name: "Tanstack Router",
-                render: <TanStackRouterDevtoolsPanel />,
-              },
-            ]}
-          />
-          <Scripts />
-        </body>
-      </html>
+            <TanStackDevtools
+              config={{
+                position: "bottom-right",
+              }}
+              plugins={[
+                {
+                  name: "Tanstack Router",
+                  render: <TanStackRouterDevtoolsPanel />,
+                },
+              ]}
+            />
+            <Scripts />
+          </body>
+        </html>
+      </QueryClientProvider>
     </ClerkProvider>
   );
 }

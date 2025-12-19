@@ -26,7 +26,7 @@
    * Environment Variables
    * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
    */
-  "vars": { "SANDBOX_URL": "https://sandbox.reeloly.com" }
+  "vars": { "ENVIRONMENT": "production" }
   /**
    * Note: Use secrets to store sensitive data.
    * https://developers.cloudflare.com/workers/configuration/secrets/

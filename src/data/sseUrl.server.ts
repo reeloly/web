@@ -1,8 +1,13 @@
 import { env } from "cloudflare:workers";
 import { createServerFn } from "@tanstack/react-start";
 
-export const getSSEUrl = createServerFn({ method: "GET" }).handler(async () => {
-  const sandboxUrl = env.SANDBOX_URL;
-  if (!sandboxUrl) throw new Error("SANDBOX_URL is not set");
-  return `${sandboxUrl}/messages`;
-});
+export const getSSEUrl = createServerFn({ method: "GET" })
+  .inputValidator((data: { projectId: string }) => data)
+  .handler(async ({ data }) => {
+    if (env.ENVIRONMENT === "development") {
+      return `${env.LOCAL_SANDBOX_URL}/_messages`;
+    } else {
+      const sandboxUrl = `https://8080-${data.projectId}-reelolyproject.reeloly.com`;
+      return `${sandboxUrl}/_messages`;
+    }
+  });

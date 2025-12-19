@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedProjectsIndexRouteImport } from './routes/_authed/projects/index'
+import { Route as ApiSandboxStatusRouteImport } from './routes/api/sandbox/status'
+import { Route as ApiSandboxInitRouteImport } from './routes/api/sandbox/init'
 import { Route as AuthedProjectsProjectIdRouteImport } from './routes/_authed/projects/$projectId'
 
 const AuthedRoute = AuthedRouteImport.update({
@@ -28,6 +30,16 @@ const AuthedProjectsIndexRoute = AuthedProjectsIndexRouteImport.update({
   path: '/projects/',
   getParentRoute: () => AuthedRoute,
 } as any)
+const ApiSandboxStatusRoute = ApiSandboxStatusRouteImport.update({
+  id: '/api/sandbox/status',
+  path: '/api/sandbox/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSandboxInitRoute = ApiSandboxInitRouteImport.update({
+  id: '/api/sandbox/init',
+  path: '/api/sandbox/init',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthedProjectsProjectIdRoute = AuthedProjectsProjectIdRouteImport.update({
   id: '/projects/$projectId',
   path: '/projects/$projectId',
@@ -37,11 +49,15 @@ const AuthedProjectsProjectIdRoute = AuthedProjectsProjectIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/projects/$projectId': typeof AuthedProjectsProjectIdRoute
+  '/api/sandbox/init': typeof ApiSandboxInitRoute
+  '/api/sandbox/status': typeof ApiSandboxStatusRoute
   '/projects': typeof AuthedProjectsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/projects/$projectId': typeof AuthedProjectsProjectIdRoute
+  '/api/sandbox/init': typeof ApiSandboxInitRoute
+  '/api/sandbox/status': typeof ApiSandboxStatusRoute
   '/projects': typeof AuthedProjectsIndexRoute
 }
 export interface FileRoutesById {
@@ -49,24 +65,40 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authed': typeof AuthedRouteWithChildren
   '/_authed/projects/$projectId': typeof AuthedProjectsProjectIdRoute
+  '/api/sandbox/init': typeof ApiSandboxInitRoute
+  '/api/sandbox/status': typeof ApiSandboxStatusRoute
   '/_authed/projects/': typeof AuthedProjectsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/projects/$projectId' | '/projects'
+  fullPaths:
+    | '/'
+    | '/projects/$projectId'
+    | '/api/sandbox/init'
+    | '/api/sandbox/status'
+    | '/projects'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/projects/$projectId' | '/projects'
+  to:
+    | '/'
+    | '/projects/$projectId'
+    | '/api/sandbox/init'
+    | '/api/sandbox/status'
+    | '/projects'
   id:
     | '__root__'
     | '/'
     | '/_authed'
     | '/_authed/projects/$projectId'
+    | '/api/sandbox/init'
+    | '/api/sandbox/status'
     | '/_authed/projects/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthedRoute: typeof AuthedRouteWithChildren
+  ApiSandboxInitRoute: typeof ApiSandboxInitRoute
+  ApiSandboxStatusRoute: typeof ApiSandboxStatusRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -91,6 +123,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/projects'
       preLoaderRoute: typeof AuthedProjectsIndexRouteImport
       parentRoute: typeof AuthedRoute
+    }
+    '/api/sandbox/status': {
+      id: '/api/sandbox/status'
+      path: '/api/sandbox/status'
+      fullPath: '/api/sandbox/status'
+      preLoaderRoute: typeof ApiSandboxStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sandbox/init': {
+      id: '/api/sandbox/init'
+      path: '/api/sandbox/init'
+      fullPath: '/api/sandbox/init'
+      preLoaderRoute: typeof ApiSandboxInitRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authed/projects/$projectId': {
       id: '/_authed/projects/$projectId'
@@ -118,6 +164,8 @@ const AuthedRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthedRoute: AuthedRouteWithChildren,
+  ApiSandboxInitRoute: ApiSandboxInitRoute,
+  ApiSandboxStatusRoute: ApiSandboxStatusRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
