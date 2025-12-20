@@ -35,7 +35,7 @@ export const Route = createFileRoute("/api/sandbox/init")({
             ? env.LOCAL_SANDBOX_URL
             : `https://8080-${projectId}.reelolyproject.com`;
 
-        const response = await fetch(`${sandboxUrl}/_sandbox/init`, {
+        const response = await fetch(`${sandboxUrl}`, {
           headers: {
             // Forward the cookie so the backend knows who the user is
             Cookie: cookie || "",
