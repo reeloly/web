@@ -45,10 +45,16 @@ export const Route = createFileRoute("/api/sandbox/init")({
           body: JSON.stringify({ projectId }),
         });
 
-        return json({
-          success: true,
-          message: "Sandbox initialization started",
-        });
+        if (!response.ok) {
+          const errorText = await response.text();
+          return json(
+            { error: `Failed to initialize sandbox: ${errorText}` },
+            { status: response.status }
+          );
+        }
+
+        const data = await response.json();
+        return json(data);
       },
     },
   },
