@@ -40,8 +40,9 @@ export const Route = createFileRoute("/api/sandbox/status")({
           method: "GET",
         });
         if (!response.ok) {
+          const errorText = await response.text();
           return json(
-            { error: "Failed to get sandbox status" },
+            { error: `Failed to get sandbox status: ${errorText}` },
             { status: response.status }
           );
         }
