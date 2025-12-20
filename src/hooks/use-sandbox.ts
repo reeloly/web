@@ -1,3 +1,4 @@
+import { useAuth } from "@clerk/tanstack-react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 
@@ -10,6 +11,7 @@ interface SandboxStatus {
 export function useSandbox(projectId: string) {
   const queryClient = useQueryClient();
   const hasAttemptedInit = useRef(false); // The "Strict Mode" lock
+  const { getToken } = useAuth();
 
   // 1. Status Query: Pings your Worker to see if 'npm run dev' is active
   const { data: status, isLoading: isChecking } = useQuery<SandboxStatus>({
@@ -26,9 +28,13 @@ export function useSandbox(projectId: string) {
   // 2. Initialize Mutation: Tells the Worker to pull code and start the server
   const initMutation = useMutation({
     mutationFn: async () => {
+      const token = await getToken();
       const res = await fetch(`/api/sandbox/init`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ projectId }),
       });
       return res.json();

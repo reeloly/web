@@ -21,6 +21,14 @@ export const Route = createFileRoute("/api/sandbox/init")({
           return json({ error: "Cookie is required" }, { status: 400 });
         }
 
+        const token = headers.get("Authorization");
+        if (!token) {
+          return json(
+            { error: "Authorization token is required" },
+            { status: 400 }
+          );
+        }
+
         const body = await request.json();
         const parsed = z
           .object({ projectId: z.string().min(1) })
@@ -40,13 +48,16 @@ export const Route = createFileRoute("/api/sandbox/init")({
             // Forward the cookie so the backend knows who the user is
             Cookie: cookie || "",
             "Content-Type": "application/json",
+            Authorization: token,
           },
-          method: "POST",
-          body: JSON.stringify({ projectId }),
         });
 
         if (!response.ok) {
           const errorText = await response.text();
+          console.error({
+            message: `Failed to initialize sandbox: ${errorText}`,
+            sandboxUrl,
+          });
           return json(
             { error: `Failed to initialize sandbox: ${errorText}` },
             { status: response.status }
