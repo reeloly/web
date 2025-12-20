@@ -7,7 +7,7 @@ export const getSSEUrl = createServerFn({ method: "GET" })
     if (env.ENVIRONMENT === "development") {
       return `${env.LOCAL_SANDBOX_URL}/_messages`;
     } else {
-      const sandboxUrl = `https://8080-${data.projectId}-reelolyproject.reeloly.com`;
+      const sandboxUrl = `https://8080-${data.projectId}.reelolyproject.com`;
       return `${sandboxUrl}/_messages`;
     }
   });

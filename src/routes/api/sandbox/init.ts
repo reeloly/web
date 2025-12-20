@@ -33,7 +33,7 @@ export const Route = createFileRoute("/api/sandbox/init")({
         const sandboxUrl =
           env.ENVIRONMENT === "development"
             ? env.LOCAL_SANDBOX_URL
-            : `https://8080-${projectId}-reelolyproject.reeloly.com`;
+            : `https://8080-${projectId}.reelolyproject.com`;
 
         const response = await fetch(`${sandboxUrl}/_sandbox/init`, {
           headers: {
