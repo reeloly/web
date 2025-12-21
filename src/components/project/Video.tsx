@@ -1,3 +1,6 @@
+import { useAuth } from "@clerk/tanstack-react-start";
+import { useEffect, useState } from "react";
+
 import { useSandbox } from "@/hooks/use-sandbox";
 import { Spinner } from "../ui/spinner";
 
@@ -7,6 +10,48 @@ interface VideoProps {
 
 export function Video({ projectId }: VideoProps) {
   const { data, isLoading, error } = useSandbox(projectId);
+  const { getToken } = useAuth();
+  const [iframeSrc, setIframeSrc] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (data?.isWarm && data?.previewUrl) {
+      const fetchPreview = async () => {
+        try {
+          const token = await getToken();
+          const previewUrl = data.previewUrl;
+          if (!previewUrl) {
+            throw new Error("Preview URL is not available");
+          }
+          const response = await fetch(previewUrl, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to fetch preview: ${response.statusText}`);
+          }
+
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          setIframeSrc(url);
+        } catch (err) {
+          setFetchError(
+            err instanceof Error ? err.message : "Failed to load preview"
+          );
+        }
+      };
+
+      fetchPreview();
+
+      return () => {
+        if (iframeSrc) {
+          URL.revokeObjectURL(iframeSrc);
+        }
+      };
+    }
+  }, [data?.isWarm, data?.previewUrl, getToken, iframeSrc]);
 
   if (isLoading) {
     return (
@@ -25,16 +70,33 @@ export function Video({ projectId }: VideoProps) {
     );
   }
 
-  if (data?.isWarm && data?.previewUrl) {
+  if (fetchError) {
+    return (
+      <div className="p-4 bg-red-50 text-red-600 rounded">
+        Error loading preview: {fetchError}
+      </div>
+    );
+  }
+
+  if (data?.isWarm && iframeSrc) {
     return (
       <div className="flex flex-col h-full bg-zinc-950/50 rounded-lg border border-zinc-800 overflow-hidden">
         <iframe
-          src={data.previewUrl}
+          src={iframeSrc}
           className="w-full h-full"
           title="Video Preview"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
         />
+      </div>
+    );
+  }
+
+  if (data?.isWarm && !iframeSrc) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full">
+        <Spinner className="size-4 animate-spin" />
+        <p className="text-sm text-zinc-500">Loading preview...</p>
       </div>
     );
   }
