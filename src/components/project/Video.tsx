@@ -25,10 +25,16 @@ export function Video({ projectId }: VideoProps) {
     );
   }
 
-  if (data?.isWarm) {
+  if (data?.isWarm && data?.previewUrl) {
     return (
-      <div className="flex flex-col items-center justify-center h-full">
-        <p className="text-sm text-zinc-500">Sandbox is warm</p>
+      <div className="flex flex-col h-full bg-zinc-950/50 rounded-lg border border-zinc-800 overflow-hidden">
+        <iframe
+          src={data.previewUrl}
+          className="w-full h-full"
+          title="Video Preview"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
       </div>
     );
   }
