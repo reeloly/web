@@ -1,16 +1,34 @@
 import { useSandbox } from "@/hooks/use-sandbox";
+import { Spinner } from "../ui/spinner";
 
 interface VideoProps {
   projectId: string;
 }
 
 export function Video({ projectId }: VideoProps) {
-  const { isWarm, previewUrl, isBooting, error } = useSandbox(projectId);
+  const { data, isLoading, error } = useSandbox(projectId);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full">
+        <Spinner className="size-4 animate-spin" />
+        <p className="text-sm text-zinc-500">Loading sandbox...</p>
+      </div>
+    );
+  }
 
   if (error) {
     return (
       <div className="p-4 bg-red-50 text-red-600 rounded">
         Error loading sandbox: {error.message}
+      </div>
+    );
+  }
+
+  if (data?.isWarm) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full">
+        <p className="text-sm text-zinc-500">Sandbox is warm</p>
       </div>
     );
   }
