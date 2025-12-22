@@ -1,4 +1,3 @@
-import { useAuth } from "@clerk/tanstack-react-start";
 import { useEffect, useState } from "react";
 
 import { useSandbox } from "@/hooks/use-sandbox";
@@ -10,48 +9,13 @@ interface VideoProps {
 
 export function Video({ projectId }: VideoProps) {
   const { data, isLoading, error } = useSandbox(projectId);
-  const { getToken } = useAuth();
   const [iframeSrc, setIframeSrc] = useState<string | null>(null);
-  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     if (data?.isWarm && data?.previewUrl) {
-      const fetchPreview = async () => {
-        try {
-          const token = await getToken();
-          const previewUrl = data.previewUrl;
-          if (!previewUrl) {
-            throw new Error("Preview URL is not available");
-          }
-          const response = await fetch(previewUrl, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-
-          if (!response.ok) {
-            throw new Error(`Failed to fetch preview: ${response.statusText}`);
-          }
-
-          const blob = await response.blob();
-          const url = URL.createObjectURL(blob);
-          setIframeSrc(url);
-        } catch (err) {
-          setFetchError(
-            err instanceof Error ? err.message : "Failed to load preview"
-          );
-        }
-      };
-
-      fetchPreview();
-
-      return () => {
-        if (iframeSrc) {
-          URL.revokeObjectURL(iframeSrc);
-        }
-      };
+      setIframeSrc(data.previewUrl);
     }
-  }, [data?.isWarm, data?.previewUrl, getToken, iframeSrc]);
+  }, [data?.isWarm, data?.previewUrl]);
 
   if (isLoading) {
     return (
@@ -66,14 +30,6 @@ export function Video({ projectId }: VideoProps) {
     return (
       <div className="p-4 bg-red-50 text-red-600 rounded">
         Error loading sandbox: {error.message}
-      </div>
-    );
-  }
-
-  if (fetchError) {
-    return (
-      <div className="p-4 bg-red-50 text-red-600 rounded">
-        Error loading preview: {fetchError}
       </div>
     );
   }
