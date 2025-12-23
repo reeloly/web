@@ -1,91 +1,101 @@
 import { useEffect, useState } from "react";
 
-import { useSandbox } from "@/hooks/use-sandbox";
 import { Spinner } from "../ui/spinner";
 
-interface VideoProps {
-  projectId: string;
+interface SandboxStatus {
+	isWarm: boolean;
+	previewUrl?: string;
+	error?: Error;
 }
 
-export function Video({ projectId }: VideoProps) {
-  const { data, isLoading, error } = useSandbox(projectId);
-  const [iframeSrc, setIframeSrc] = useState<string | null>(null);
+interface VideoProps {
+	projectId: string;
+	sandboxStatus: {
+		data?: SandboxStatus;
+		isLoading: boolean;
+		error: Error | null;
+	};
+}
 
-  useEffect(() => {
-    if (data?.isWarm && data?.previewUrl) {
-      setIframeSrc(data.previewUrl);
-    }
-  }, [data?.isWarm, data?.previewUrl]);
+export function Video({ projectId: _projectId, sandboxStatus }: VideoProps) {
+	const { data, isLoading, error } = sandboxStatus;
+	const [iframeSrc, setIframeSrc] = useState<string | null>(null);
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full">
-        <Spinner className="size-4 animate-spin" />
-        <p className="text-sm text-zinc-500">Loading sandbox...</p>
-      </div>
-    );
-  }
+	useEffect(() => {
+		if (data?.isWarm && data?.previewUrl) {
+			setIframeSrc(data.previewUrl);
+		}
+	}, [data?.isWarm, data?.previewUrl]);
 
-  if (error) {
-    return (
-      <div className="p-4 bg-red-50 text-red-600 rounded">
-        Error loading sandbox: {error.message}
-      </div>
-    );
-  }
+	if (isLoading) {
+		return (
+			<div className="flex flex-col items-center justify-center h-full">
+				<Spinner className="size-4 animate-spin" />
+				<p className="text-sm text-zinc-500">Loading sandbox...</p>
+			</div>
+		);
+	}
 
-  if (data?.isWarm && iframeSrc) {
-    return (
-      <div className="flex flex-col h-full bg-zinc-950/50 rounded-lg border border-zinc-800 overflow-hidden">
-        <iframe
-          src={iframeSrc}
-          className="w-full h-full"
-          title="Video Preview"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        />
-      </div>
-    );
-  }
+	if (error) {
+		return (
+			<div className="p-4 bg-red-50 text-red-600 rounded">
+				Error loading sandbox: {error.message}
+			</div>
+		);
+	}
 
-  if (data?.isWarm && !iframeSrc) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full">
-        <Spinner className="size-4 animate-spin" />
-        <p className="text-sm text-zinc-500">Loading preview...</p>
-      </div>
-    );
-  }
+	if (data?.isWarm && iframeSrc) {
+		return (
+			<div className="flex flex-col h-full bg-zinc-950/50 rounded-lg border border-zinc-800 overflow-hidden">
+				<iframe
+					src={iframeSrc}
+					className="w-full h-full"
+					title="Video Preview"
+					allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+					allowFullScreen
+				/>
+			</div>
+		);
+	}
 
-  return (
-    <div className="flex flex-col h-full bg-zinc-950/50 rounded-lg border border-zinc-800 overflow-hidden">
-      {/* Video preview area */}
-      <div className="flex-1 min-h-0 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 rounded-full bg-zinc-800/50 flex items-center justify-center mb-4 mx-auto">
-            <svg
-              className="w-8 h-8 text-zinc-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <title>Video icon</title>
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-              />
-            </svg>
-          </div>
-          <h3 className="text-lg font-medium text-zinc-300 mb-2">
-            Video Preview
-          </h3>
-          <p className="text-sm text-zinc-500 max-w-sm">
-            Video preview will appear here
-          </p>
-        </div>
-      </div>
-    </div>
-  );
+	if (data?.isWarm && !iframeSrc) {
+		return (
+			<div className="flex flex-col items-center justify-center h-full">
+				<Spinner className="size-4 animate-spin" />
+				<p className="text-sm text-zinc-500">Loading preview...</p>
+			</div>
+		);
+	}
+
+	return (
+		<div className="flex flex-col h-full bg-zinc-950/50 rounded-lg border border-zinc-800 overflow-hidden">
+			{/* Video preview area */}
+			<div className="flex-1 min-h-0 flex items-center justify-center">
+				<div className="text-center">
+					<div className="w-16 h-16 rounded-full bg-zinc-800/50 flex items-center justify-center mb-4 mx-auto">
+						<svg
+							className="w-8 h-8 text-zinc-600"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<title>Video icon</title>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+							/>
+						</svg>
+					</div>
+					<h3 className="text-lg font-medium text-zinc-300 mb-2">
+						Video Preview
+					</h3>
+					<p className="text-sm text-zinc-500 max-w-sm">
+						Video preview will appear here
+					</p>
+				</div>
+			</div>
+		</div>
+	);
 }
